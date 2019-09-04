@@ -1,14 +1,39 @@
 # Disaster Response Pipeline Project
 
-### Instructions:
-1. Run the following commands in the project's root directory to set up your database and model.
+Natural Language Processing Pipeline that analyzes text messages and classifies them for various disaster responses.
 
-    - To run ETL pipeline that cleans data and stores in database
-        `python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db`
-    - To run ML pipeline that trains classifier and saves
-        `python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl`
+> This data is based on Udacity course for Data Science NanoDegree
 
-2. Run the following command in the app's directory to run your web app.
-    `python run.py`
+## Getting Started
 
-3. Go to http://0.0.0.0:3001/
+If you just want to get the system up and running, you can use the provided docker file to build the system (this requires docker to be installed on your system):
+
+```bash
+$ docker build -t felixnext/disaster_pipeline .
+$ docker run -d -p 8000:3001 --name disaster_pipe felixnext/disaster_pipeline
+```
+
+The service should now run on your system and be reachable through: `https://localhost:8000/`.
+
+In order to manually setup the system, you have to follow some distinct steps:
+
+1. Clean the relevant data and train classifier models:
+  ```bash
+  $ python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
+  $ python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl
+  ```
+2. Go in the `app` folder and run `python run.py`
+3. Service should now be reachable under `https://localhost:3001/`
+
+### External Libraries
+
+The code depends on various external libraries:
+
+* Python Tool Stack (`pandas`, `numpy`, `scikit-learn`)
+* TensorFlow
+* Flask
+* SQLAlchemy
+
+## License
+
+Published under MIT License

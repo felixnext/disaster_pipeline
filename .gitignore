@@ -1,0 +1,4 @@
+.ipynb_checkpoints
+*.pyc
+data/*.db
+models/*.pkl
