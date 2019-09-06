@@ -1,0 +1,14 @@
+{
+  "process": {
+    "features": [
+
+    ],
+    "stem": "lemmatize"
+  },
+  "classifier": {
+
+  },
+  "training": {
+    "gridsearch": true
+  }
+}
