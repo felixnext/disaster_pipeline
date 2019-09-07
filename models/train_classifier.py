@@ -28,6 +28,9 @@ nltk.download('wordnet')
 # generate stop words
 stops = set(stopwords.words('english'))
 
+# TODO: download relevant glove models for later usage
+import glove
+
 def load_data(database_filepath):
   engine = create_engine('sqlite:///{}'.format(database_filepath))
   df = pd.read_sql_table('texts', engine)

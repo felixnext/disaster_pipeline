@@ -57,7 +57,7 @@ The code depends on various external libraries:
 
 ### Experimental
 
-* [GloVe](https://github.com/stanfordnlp/GloVe)
+* GloVe - Uses a pretrained twitter-model from [here](https://github.com/stanfordnlp/GloVe)
 
 > Glove Training: https://github.com/JonathanRaiman/glove
 
