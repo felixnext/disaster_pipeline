@@ -63,13 +63,13 @@ class GloveEmbeddings:
     if name == 'twitter':
       file = '../models/glove.{}.27B.{}d.txt'.format(name, dim)
     elif name == 'wikipedia':
-      file = '../models/glove.87B.{}d.txt'.format(dim)
+      file = '../models/glove.840B.{}d.txt'.format(dim)
     else:
       raise ValueError('Unkown model type ({})'.format(name))
     # load the embeddings
     with open(file, encoding='utf-8') as file:
       embeddings_index = [self.get_coefs(*o.strip().split()) for o in file]
-    embeddings_index = list(filter(lambda x: len(x[1]) == 25, embeddings_index))
+    embeddings_index = list(filter(lambda x: len(x[1]) == dim, embeddings_index))
     return dict(embeddings_index)
 
   def word_vector(self,word):
@@ -106,17 +106,22 @@ class GloveEmbeddings:
     # if no word is found return random vector
     return vec if vec is not None else np.random.normal(self.emb_mean, self.emb_std, (self.emb_size))
 
-  def sent_matrix(self, sent, max_feat, pad):
+  def sent_matrix(self, sent, max_feat, pad, dedub=False):
     '''Generates a Matrix of single embeddings for the item.
 
     Args:
       sent (list): List of tokenized words
       max_feat (int): Number of maximal features to extract
       pad (bool): Defines if the resulting matrix should be zero-padded to max_feat
+      dedub (bool): Defines if the word list should be de-duplicated
 
     Returns:
       2-D Matrix with dimensions [max_feat, embedding_size]
     '''
+    # remove duplicates
+    if dedub:
+      sent = list(set(sent))
+    # setup matrix
     nb_words = min(max_feat, len(sent))
     embedding_matrix = np.random.normal(self.emb_mean, self.emb_std, (nb_words, self.emb_size))
     # iterate through all words
@@ -162,6 +167,8 @@ class GloVeTransformer(BaseEstimator, TransformerMixin):
 
   def __init__(self, name, dim, type, tokenizer, max_feat=None):
     '''Create the Transformer.
+
+    Note that the centroid option might be slow.
 
     Args:
       name (str): Name of the model

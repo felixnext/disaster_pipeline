@@ -12,3 +12,6 @@ feat_glove,0.364840,0.747294,0.241331, Sun Sep  8 13:33:09 2019
 feat_glove_25d_sent,0.364795,0.745380,0.241492, Sun Sep  8 13:38:44 2019
 feat_glove_25d_sent-matrix,0.498880,0.693872,0.389440, Sun Sep  8 13:52:13 2019
 feat_glove_25d_sent-matrix,0.487443,0.599636,0.410616, Sun Sep  8 13:59:02 2019
+feat_glove_25d_centroid,0.494378,0.717079,0.377225, Sun Sep  8 14:27:59 2019
+feat_glove_25d_centroid,0.511785,0.702046,0.402660, Sun Sep  8 14:44:26 2019
+feat_glove_100d_sent,0.365239,0.749875,0.241411, Sun Sep  8 14:55:42 2019
