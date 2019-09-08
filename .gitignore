@@ -3,3 +3,4 @@
 data/*.db
 models/*.pkl
 models/**/glove.*.txt
+__pycache__

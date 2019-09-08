@@ -5,9 +5,11 @@ https://www.kaggle.com/jhoward/improved-lstm-baseline-glove-dropout
 '''
 
 import numpy as np
+import pandas as pd
 import urllib.request
 from zipfile import ZipFile
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.cluster import KMeans
 
 def download(name):
   '''Downloads the relevant dataset and extracts it.
@@ -46,8 +48,8 @@ class GloveEmbeddings:
     # load data
     self.emb = self.load_vectors(name, dim)
     self.emb_size = dim
-    # calculate items for randomization
-    all_embs = np.stack(self.emb.values())
+    # calculate items for randomization (explicit convert to list to avoid numpy warning)
+    all_embs = np.stack(list(self.emb.values()))
     self.emb_mean,self.emb_std = all_embs.mean(), all_embs.std()
 
   def get_coefs(self, word, *arr):
@@ -56,11 +58,19 @@ class GloveEmbeddings:
 
   def load_vectors(self, name, dim):
     '''Load the given vector data.'''
-    # TODO: additional error checks
-    file = '../models/glove.{}.27B.{}d.txt'.format(name, dim)
+    # retrieve file name
+    file = None
+    if name == 'twitter':
+      file = '../models/glove.{}.27B.{}d.txt'.format(name, dim)
+    elif name == 'wikipedia':
+      file = '../models/glove.87B.{}d.txt'.format(dim)
+    else:
+      raise ValueError('Unkown model type ({})'.format(name))
     # load the embeddings
-    embeddings_index = dict(self.get_coefs(*o.strip().split()) for o in open(file, encoding='utf-8'))
-    return embeddings_index
+    with open(file, encoding='utf-8') as file:
+      embeddings_index = [self.get_coefs(*o.strip().split()) for o in file]
+    embeddings_index = list(filter(lambda x: len(x[1]) == 25, embeddings_index))
+    return dict(embeddings_index)
 
   def word_vector(self,word):
     '''Tries to retrieve the embedding for the given word, otherwise returns random vector.'''
@@ -89,9 +99,9 @@ class GloveEmbeddings:
           vec = wvec
         else:
           vec += wvec
-        vec_count += 1
+      vec_count += 1
     # normalize the vector
-    if vec is not None:
+    if vec is not None and vec_count > 0:
       vec = vec / vec_count
     # if no word is found return random vector
     return vec if vec is not None else np.random.normal(self.emb_mean, self.emb_std, (self.emb_size))
@@ -116,8 +126,36 @@ class GloveEmbeddings:
       if vec is not None: embedding_matrix[i] = vec
     # pad the matrix to max features
     if pad and nb_words < max_feat:
-      pass
+      embedding_matrix = np.pad(embedding_matrix, (max_feat, self.emb_size), 'constant', constant_values=[0])
     return embedding_matrix
+
+  def centroid_vectors(self, sent, max_feat):
+    '''Generates a list of `max_feat` vectors to be used as representation.
+
+    Args:
+      sent (list): Tokenized words in the document
+      max_feat (int): Number of vectors to generate
+
+    Returns:
+      Array of centroid vectors for the given document
+    '''
+    # generate list of vectors (use set as order not relevant and to avoid duplicates)
+    vecs = []
+    for word in set(sent):
+      vec = self.emb.get(word)
+      if vec is not None: vecs.append(vec)
+
+    # return random vector if none found
+    if len(vecs) < max_feat:
+      return np.array(vecs + [np.random.normal(self.emb_mean, self.emb_std, (self.emb_size)) for i in range(max_feat - len(vecs))])
+    elif len(vecs) == max_feat:
+      return np.array(vecs)
+
+    # perform clustering
+    kmeans = KMeans(n_clusters=max_feat).fit(vecs)
+
+    # return the centroid vectors
+    return kmeans.cluster_centers_
 
 class GloVeTransformer(BaseEstimator, TransformerMixin):
   '''Transformer for the GloVe Model.'''
@@ -128,9 +166,16 @@ class GloVeTransformer(BaseEstimator, TransformerMixin):
     Args:
       name (str): Name of the model
       dim (int): Number of dimensions to use
-      type (str): Type of the transformation (options are: ['word', 'sent', 'sent-matrix'])
+      type (str): Type of the transformation (options are: ['word', 'sent', 'sent-matrix', 'centroid'])
       tokenizer (fct): Function to tokenize the input data
+      max_feat (int): Number of maximal feature vectors used per input
     '''
+    # safty checks
+    if type not in ['word', 'sent', 'sent-matrix', 'centroid']:
+      raise ValueError("Invalid value for type: ({})".format(type))
+    if type in ['sent-matrix', 'centroid'] and max_feat is None:
+      raise ValueError("Required value for max_feat for type ({})".format(type))
+    # set values
     self.glove = GloveEmbeddings(name, dim)
     self.type = type
     self.tokenizer = tokenizer
@@ -143,13 +188,17 @@ class GloVeTransformer(BaseEstimator, TransformerMixin):
     # retrieve the vectors
     tokens = self.tokenizer(text)
     if self.type == 'word':
-      return [self.glove.word_vector(tok) for tok in tokens]
+      return np.concat([self.glove.word_vector(tok) for tok in tokens])
     elif self.type == 'sent':
       return self.glove.sent_vector(tokens)
     elif self.type == 'sent-matrix':
-      return self.glove.sent_matrix(tokens, self.max_feat)
+      # note: use padding to avoid pipeline problems
+      return self.glove.sent_matrix(tokens, self.max_feat, True).reshape([-1])
+    elif self.type == 'centroid':
+      return self.glove.centroid_vectors(tokens, self.max_feat).reshape([-1])
     return np.nan
 
   def transform(self, X):
-    X_tagged = pd.Series(X).apply(self.vectors, expand=True)
-    return pd.DataFrame(X_tagged)
+    X_tagged = pd.Series(X).apply(lambda x: pd.Series(self.vectors(x)))
+    df = pd.DataFrame(X_tagged).fillna(0).replace([-np.inf], -1).replace([np.inf], 1)
+    return df
