@@ -192,6 +192,7 @@ class GloVeTransformer(BaseEstimator, TransformerMixin):
     return self
 
   def vectors(self, text):
+    '''Extracts the specified type of vector for the given input data.'''
     # retrieve the vectors
     tokens = self.tokenizer(text)
     if self.type == 'word':

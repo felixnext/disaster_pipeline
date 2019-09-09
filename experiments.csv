@@ -15,3 +15,10 @@ feat_glove_25d_sent-matrix,0.487443,0.599636,0.410616, Sun Sep  8 13:59:02 2019
 feat_glove_25d_centroid,0.494378,0.717079,0.377225, Sun Sep  8 14:27:59 2019
 feat_glove_25d_centroid,0.511785,0.702046,0.402660, Sun Sep  8 14:44:26 2019
 feat_glove_100d_sent,0.365239,0.749875,0.241411, Sun Sep  8 14:55:42 2019
+feat_glove_100d_sent,0.367123,0.764399,0.241572, Sun Sep  8 15:28:44 2019
+feat_glove_100d_sent-matrix,0.528374,0.598596,0.472897, Sun Sep  8 16:53:29 2019
+feat_glove_tfidf_compose,0.364580,0.743964,0.241451, Sun Sep  8 17:45:28 2019
+feat_combined,0.364552,0.744884,0.241331, Mon Sep  9 07:42:27 2019
+decision_tree,0.607192,0.616990,0.597702, Mon Sep  9 08:16:46 2019
+random_forest,0.593488,0.808778,0.468719, Mon Sep  9 08:32:24 2019
+decision_tree,0.613643,0.630102,0.598023, Mon Sep  9 08:59:22 2019
