@@ -13,23 +13,18 @@ import re
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.svm import SVC
 from sklearn.multioutput import MultiOutputClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score
 
 # storage
 import pickle
-import nltk
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-nltk.download('wordnet')
-# generate stop words
-stops = set(stopwords.words('english'))
 
-# TODO: download relevant glove models for later usage
+# Load custom functions from the model folder
+import sys
+sys.path.insert(1, '../models')
 import glove
+import ml_helper as utils
 
 def load_data(database_filepath):
   engine = create_engine('sqlite:///{}'.format(database_filepath))
@@ -38,33 +33,23 @@ def load_data(database_filepath):
   Y = df.iloc[:, 4:]
   return X['message'], Y, Y.columns
 
-def tokenize(text):
-  # remove punctuation
-  text = re.sub("[\.\\:;!?'\"-]", " ", text.lower())
-  tokens = word_tokenize(text)
-
-  # remove stopwords
-  tokens = [tok for tok in tokens if tok not in stops]
-
-  # part of speech
-  tags = pos_tag(tokens)
-
-  # TODO: further processing (e.g. NER)
-  return tags
-
 def build_model():
-  pipeline = [
-      ('vectorize', CountVectorizer(tokenizer=tokenize)),
-      ('tfidf', TfidfTransformer()),
-      ('cls', MultiOutputClassifier(SVC(), n_jobs=1) )
-  ]
-  pipeline = Pipeline(pipeline)
+  pipeline = Pipeline([
+    ('features', FeatureUnion([
+      ('term_emb', Pipeline([
+        ('vectorize', CountVectorizer(tokenizer=utils.tokenize_clean, max_df=0.5)),
+        ('tfidf', TfidfTransformer(use_idf=False)),
+      ])),
+      ('glove', Pipeline([
+        ('glove_emb', glove.GloVeTransformer('twitter', 25, 'centroid', tokenizer=utils.tokenize_clean, max_feat=5))
+      ]))
+    ])),
+    ('cls', MultiOutputClassifier(DecisionTreeClassifier(), n_jobs=-1) )
+  ])
   return pipeline
 
 def evaluate_model(model, X_test, Y_test, category_names):
-  y_pred = model.predict(X_test)
-  score = f1_score(Y_test, y_pred, average='micro')
-  print("MODEL PERFORMED WITH: {:.6f}".format(score))
+  utils.score_and_doc(model, "final", X_test, Y_test, extended=True)
 
 def save_model(model, model_filepath):
   pickle.dump(model, open(model_filepath, 'wb'))

@@ -7,23 +7,18 @@ from nltk.tokenize import word_tokenize
 
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
+from plotly.graph_objs import Bar, Scatter
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
+# Load custom functions from the model folder
+import sys
+sys.path.insert(1, '../models')
+import glove
+import ml_helper as utils
+
 
 app = Flask(__name__)
-
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
-
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
 
 # load data
 engine = create_engine('sqlite:///../data/disaster_data.db')
@@ -32,25 +27,27 @@ df = pd.read_sql_table('texts', engine)
 # load model
 model = joblib.load("../models/pipeline.pkl")
 
-
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
 def index():
 
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
+    categories = df.iloc[:, 4:].sum(axis=0)
+    category_counts = categories.values
+    category_names = categories.index.tolist()
+    message_length = df['message'].apply(lambda x: len(x)).values
+    message_cats = df.iloc[:, 4:].sum(axis=1).values
 
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
                 Bar(
                     x=genre_names,
-                    y=genre_counts
+                    y=genre_counts,
                 )
             ],
 
@@ -61,6 +58,43 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=category_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Category"
+                }
+            }
+        },
+        {
+            'data': [{
+              'type': 'scatter',
+              'x': message_length,
+              'y': message_cats,
+              'mode': 'markers'
+            }],
+
+            'layout': {
+                'title': 'Message Length vs Number of Categories',
+                'yaxis': {
+                    'title': "# Categories"
+                },
+                'xaxis': {
+                    'title': "Message Length (in chars) [log-scale]",
+                    'type': 'log'
                 }
             }
         }

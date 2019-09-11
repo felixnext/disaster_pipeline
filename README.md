@@ -35,6 +35,10 @@ The system is divided into two parts: An ETL pipeline to load and clean the data
 
 I have run experiments against using different configurations. The results can be found in the `experiments.csv` file.
 
+**Relevant Changes:**
+
+* During the extraction phase, I dropped the `child_alone` category, as all data points were 0 (cannot reasonably be learned) - (Pipeline will extended to more categories automatically during training, therefore it can be trainined if more datapoints come available in the future)
+
 ### Experiment Design
 
 The design of the experiments follows a sequential approach. First of all I used a `MultiOutputClassifier` and `LogisticRegression` as a baseline for the classifiers. They are working on basic simple lemmatized words embedded through TF-IDF.
@@ -60,6 +64,12 @@ The code depends on various external libraries:
 * GloVe - Uses a pretrained twitter-model from [here](https://github.com/stanfordnlp/GloVe)
 
 > Glove Training: https://github.com/JonathanRaiman/glove
+
+## Future Work / ToDos
+
+* Test GloVe against Word2Vec
+* Integrate Neural Network approaches (FF, RNN, Bert, etc)
+* Switch to `joblib` for model loading
 
 ## License
 
