@@ -10,23 +10,29 @@ from nltk.corpus import stopwords
 import re
 
 # machine learning
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.multioutput import MultiOutputClassifier
-from sklearn.tree import DecisionTreeClassifier
+#from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
 # storage
 import pickle
 
 # Load custom functions from the model folder
-import sys
-sys.path.insert(1, '../models')
+import sys, os
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__))))
 import glove
 import ml_helper as utils
 
 def load_data(database_filepath):
+  '''Loads the relevant data for the model training.'''
+  # download glove data
+  if not glove.download('twitter'):
+    print("ERROR: Download of GloVe Data failed. Please download and extract manually to the ./models directory from http://nlp.stanford.edu/data/wordvecs/glove.twitter.27B.zip")
+  # laad remaining data
   engine = create_engine('sqlite:///{}'.format(database_filepath))
   df = pd.read_sql_table('texts', engine)
   X = df[['message', 'original', 'genre']]
@@ -34,6 +40,7 @@ def load_data(database_filepath):
   return X['message'], Y, Y.columns
 
 def build_model():
+  '''Creates the pipeline with pre-processing and classifier.'''
   pipeline = Pipeline([
     ('features', FeatureUnion([
       ('term_emb', Pipeline([
@@ -44,14 +51,16 @@ def build_model():
         ('glove_emb', glove.GloVeTransformer('twitter', 25, 'centroid', tokenizer=utils.tokenize_clean, max_feat=5))
       ]))
     ])),
-    ('cls', MultiOutputClassifier(DecisionTreeClassifier(), n_jobs=-1) )
+    ('cls', MultiOutputClassifier(LogisticRegression(max_iter=50, C=2.0), n_jobs=-1) )
   ])
   return pipeline
 
 def evaluate_model(model, X_test, Y_test, category_names):
+  '''Evaluate the model.'''
   utils.score_and_doc(model, "final", X_test, Y_test, extended=True)
 
 def save_model(model, model_filepath):
+  '''Store the model as serialized data.'''
   pickle.dump(model, open(model_filepath, 'wb'))
 
 def main():

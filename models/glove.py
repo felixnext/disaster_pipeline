@@ -4,12 +4,15 @@ Code Inspiration from:
 https://www.kaggle.com/jhoward/improved-lstm-baseline-glove-dropout
 '''
 
+import os
 import numpy as np
 import pandas as pd
 import urllib.request
 from zipfile import ZipFile
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.cluster import KMeans
+
+folder = os.path.dirname(os.path.realpath(__file__))
 
 def download(name):
   '''Downloads the relevant dataset and extracts it.
@@ -27,15 +30,15 @@ def download(name):
     url = 'http://nlp.stanford.edu/data/wordvecs/glove.840B.300d.zip'
   if url is not None:
     try:
-      urllib.request.urlretrieve(url, '../models/{}.zip'.format(name))
+      urllib.request.urlretrieve(url, os.path.join(folder, '{}.zip'.format(name)))
     except:
       print("download failed")
       return False
     try:
       # Create a ZipFile Object and load sample.zip in it
-      with ZipFile('../models/{}.zip'.format(name), 'r') as zipObj:
+      with ZipFile(os.path.join(folder, '{}.zip'.format(name)), 'r') as zipObj:
         # Extract all the contents of zip file in current directory
-        zipObj.extractall('../models')
+        zipObj.extractall(folder)
       return True
     except:
       print("extraction failed")
@@ -61,9 +64,9 @@ class GloveEmbeddings:
     # retrieve file name
     file = None
     if name == 'twitter':
-      file = '../models/glove.{}.27B.{}d.txt'.format(name, dim)
+      file = os.path.join(folder, 'glove.{}.27B.{}d.txt'.format(name, dim))
     elif name == 'wikipedia':
-      file = '../models/glove.840B.{}d.txt'.format(dim)
+      file = os.path.join(folder, 'glove.840B.{}d.txt'.format(dim))
     else:
       raise ValueError('Unkown model type ({})'.format(name))
     # load the embeddings

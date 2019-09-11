@@ -20,7 +20,7 @@ In order to manually setup the system, you have to follow some distinct steps:
 1. Clean the relevant data and train classifier models:
   ```bash
   $ python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
-  $ python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl
+  $ python models/train_classifier.py data/DisasterResponse.db models/pipeline.pkl
   ```
 2. Go in the `app` folder and run `python run.py`
 3. Service should now be reachable under `https://localhost:3001/`
@@ -46,16 +46,13 @@ The design of the experiments follows a sequential approach. First of all I used
 From there on I experimented with the data in relation to target variables to build hypothesis about the usefulness of certain features (you can see the process in the ML Notebook).
 I then tested these hypothesis against the baseline model.
 
-The current best approach is:
-
-TODO
+The current best approach is a combination of GloVe and Tf-IDF as input features and a LogisticRegression Classifier per output category (reaching an F1-Score ~0.675).
 
 ## External Libraries
 
 The code depends on various external libraries:
 
 * Python Tool Stack (`pandas`, `numpy`, `scikit-learn`)
-* TensorFlow
 * Flask
 * SQLAlchemy
 
@@ -70,6 +67,9 @@ The code depends on various external libraries:
 * Test GloVe against Word2Vec
 * Integrate Neural Network approaches (FF, RNN, Bert, etc)
 * Switch to `joblib` for model loading
+* Data is very imbalanced (most data in the related category) - apply additional down / up sampling to ensure more balanced class distribution
+* Feature weighting
+* XGBoost Approach
 
 ## License
 

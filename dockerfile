@@ -15,7 +15,7 @@ RUN mkdir /app/models
 COPY ./data /app/data/
 RUN python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
 COPY ./models /app/models/
-RUN python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl
+RUN python models/train_classifier.py data/DisasterResponse.db models/pipeline.pkl
 
 # copy the final app data
 COPY ./app /app/app/
