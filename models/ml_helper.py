@@ -2,6 +2,7 @@
 Various helper function (especially in the pre-processing of the data)
 '''
 
+import time
 # pre-processing
 from nltk import pos_tag, ne_chunk
 from nltk.tokenize import word_tokenize, sent_tokenize

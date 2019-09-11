@@ -57,7 +57,7 @@ def build_model():
 
 def evaluate_model(model, X_test, Y_test, category_names):
   '''Evaluate the model.'''
-  utils.score_and_doc(model, "final", X_test, Y_test, extended=True)
+  utils.score_and_doc(model, "deploy_final", X_test, Y_test, extended=True)
 
 def save_model(model, model_filepath):
   '''Store the model as serialized data.'''
