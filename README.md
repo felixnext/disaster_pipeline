@@ -26,9 +26,11 @@ In order to manually setup the system, you have to follow some distinct steps:
 3. Go in the `app` folder and run `python run.py`
 4. Service should now be reachable under `https://localhost:3001/`
 
+> **NOTE:** Please note that the execution of the scripts requires 1.5+ GB of Disk Space, as it downloads pre-trained embeddings for glove. If you want to omit that, please downlaod the models manually from [here](http://nlp.stanford.edu/data/wordvecs/glove.twitter.27B.zip) and extract the relevant ones into the `models` folder. (Also comment out the download call in the `train_classifier.py` function).
+
 ## Algorithm Design
 
-The system is divided into two parts: An ETL pipeline to load and clean the data and the machine learning pipeline to build the model. They are defined in `data/process_data.py` and `models/train_classifier.py` respectively. The ETL pipeline is pretty straight forward. However, the machine learning pipeline allows to provide different configurations (defined in the `config.py`). The pipeline has three distinct steps:
+The system is divided into two parts: An ETL pipeline to load and clean the data and the machine learning pipeline to build the model. They are defined in `data/process_data.py` and `models/train_classifier.py` respectively (there are also various experiments in the `notebooks` folder). The ETL pipeline is pretty straight forward. However, the machine learning pipeline allows to provide different configurations (defined in the `config.py`). The pipeline has three distinct steps:
 
 1. Processing: Loads the data created by the ETL pipeline and splits it into distinct features to be used by the classifiers
 2. Classifier: Defines the actual classifiers used by the pipeline and which features they use
